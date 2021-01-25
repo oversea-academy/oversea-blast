@@ -9,8 +9,9 @@ const nextHandler = nextApp.getRequestHandler()
 const PORT        = process.env.PORT || 3000;
 
 io.on('connection', (socket) => {
-  console.log("Connected succesfully to the socket ...");
+  console.log("> Connected succesfully to the socket ...");
   
+  socket.emit('message', 'Hello from socket.io');
   socket.on('message', (data) => {
     console.log(data);
   });
