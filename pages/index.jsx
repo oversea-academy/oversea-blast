@@ -11,6 +11,7 @@ export default function Home() {
   const [file, setFile]           = useState(React.createRef());
   const [fileName, setFileName]   = useState(null);
   const [dataExcel, setDataExcel] = useState([]);
+  const [statusMsg, setStatusMsg] = useState(null);
 
   function executeMessage(e) {
     e.preventDefault();
@@ -18,8 +19,7 @@ export default function Home() {
       message,
       data: dataExcel
     }
-    renderQRCode(message);
-    socket.emit("message", JSON.stringify(data));
+    socket.emit("message", data);
   }
 
   function handleFile(e) {
@@ -75,8 +75,16 @@ export default function Home() {
 
   useEffect(() => {
     if (socket) {
-      socket.on("message", (data) => {
-        console.log(data);
+      socket.on("message", (message) => {
+        console.log(message);
+        if (message.action == 'qr') {
+          renderQRCode(message.data);
+          setStatusMsg(message.statusMsg);
+        } else if (message.action == 'ready') {
+          setStatusMsg(message.statusMsg);
+        } else if (message.action == 'done') {
+          setStatusMsg(message.statusMsg);
+        }
       });
     }
   }, [])
@@ -102,7 +110,7 @@ export default function Home() {
             <div className="form-group">
               <div className="mt-3">QR Code</div>
               <div className="pa-2">
-                <canvas id="canvas" width="800" height="800"></canvas>
+                <canvas className="border border-gray-500" id="canvas" width="400" height="400"></canvas>
               </div>
             </div>
             
@@ -135,6 +143,10 @@ export default function Home() {
               <button onClick={executeMessage} className="mt-3 bg-gray-200 hover:bg-gray-300 border border-gray-500 text-black font-bold py-2 px-6 rounded-md">
                 Execute
               </button>
+              { statusMsg ? 
+                <p>Status : { statusMsg }</p> :
+                <p></p>
+              }
             </div>
 
           </div>
