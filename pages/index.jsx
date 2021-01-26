@@ -131,10 +131,10 @@ export default function Home() {
             
             <div className="form-group">
               <div className="mt-3 mb-1 font-semibold">Upload File</div>
-              <div className="mt-3 mb-1">
-                <button className="bg-green-500 hover:bg-green-600 border border-green-500 text-white py-1 px-1 rounded-md">
+              <div className="mt-3 mb-2">
+                <a href="/format_blast.xlsx" download className="bg-green-500 hover:bg-green-600 border border-green-500 text-white py-1 px-1 rounded-md">
                   Download format file
-                </button>
+                </a>
               </div>
               <div className="border border-dashed border-gray-500 relative rounded-md bg-gray-100">
                 <input type="file" ref={file} onChange={handleFile} className="cursor-pointer relative block opacity-0 w-full h-full p-20 z-50" />
@@ -189,12 +189,11 @@ export default function Home() {
 
       <footer className={styles.footer}>
         <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
+          href="https://github.com/arifintahu"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
+          Created by <span className="font-semibold"> @arifintahu</span>
         </a>
       </footer>
     </div>
