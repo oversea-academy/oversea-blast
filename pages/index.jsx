@@ -2,28 +2,75 @@ import Head   from 'next/head';
 import styles from '../styles/Home.module.css';
 import io     from 'socket.io-client';
 import React, { useState, useEffect } from 'react';
+import xlsx   from 'xlsx';
+import QRCode from 'qrcode';
 
 export default function Home() {
-  const [socket, setSocket]     = useState(io());
-  const [message, setMessage]   = useState("");
-  const [file, setFile]         = useState(React.createRef());
-  const [fileName, setFileName] = useState(null);
+  const [socket, setSocket]       = useState(io());
+  const [message, setMessage]     = useState("");
+  const [file, setFile]           = useState(React.createRef());
+  const [fileName, setFileName]   = useState(null);
+  const [dataExcel, setDataExcel] = useState([]);
 
   function executeMessage(e) {
     e.preventDefault();
     const data = {
-      message
+      message,
+      data: dataExcel
     }
+    renderQRCode(message);
     socket.emit("message", JSON.stringify(data));
   }
 
   function handleFile(e) {
     e.preventDefault();
-    setFileName(file.current.files[0].name);
+    const name = file.current.files[0].name;
+    const ext = name.split(".")[1]
+    if ( ext == 'xlsx' || ext == 'csv' ) {
+      setFileName(file.current.files[0].name);
+      convertExcel(file.current.files[0]);
+    } else {
+      alert('File format is not valid')
+    }
   }
 
   function handleMessage(e) {
     setMessage(e.target.value);
+  }
+
+  function convertExcel(fileExcel) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const data      = e.target.result;
+      const workbook  = xlsx.read(data, {
+        type: 'binary'
+      });
+      const sheet_name_list = workbook.SheetNames;
+      const content = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
+      setDataExcel(content);
+    };
+
+    reader.onerror = function(ex) {
+      console.log(ex);
+    };
+    reader.readAsBinaryString(fileExcel);
+  }
+
+  function renderQRCode(data) {
+    const canvas = document.getElementById('canvas');
+    QRCode.toCanvas(canvas, data, function (error) {
+      if (error) {
+        console.error(error) 
+      } else {
+        console.log('success!');
+      }
+    });
+  }
+
+  function clearQRCode() {
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
   }
 
   useEffect(() => {
@@ -55,6 +102,7 @@ export default function Home() {
             <div className="form-group">
               <div className="mt-3">QR Code</div>
               <div className="pa-2">
+                <canvas id="canvas" width="800" height="800"></canvas>
               </div>
             </div>
             
