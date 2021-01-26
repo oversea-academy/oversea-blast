@@ -12,14 +12,23 @@ export default function Home() {
   const [fileName, setFileName]   = useState(null);
   const [dataExcel, setDataExcel] = useState([]);
   const [statusMsg, setStatusMsg] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   function executeMessage(e) {
     e.preventDefault();
-    const data = {
-      message,
-      data: dataExcel
+    if (message && dataExcel.length) {
+      if (confirm('Are you sure?')) {
+        setIsLoading(true);
+        setStatusMsg("Loading...");
+        const data = {
+          message,
+          rows: dataExcel
+        }
+        socket.emit("message", data);
+      }
+    } else {
+      alert('Message and file is empty');
     }
-    socket.emit("message", data);
   }
 
   function handleFile(e) {
@@ -80,10 +89,16 @@ export default function Home() {
         if (message.action == 'qr') {
           renderQRCode(message.data);
           setStatusMsg(message.statusMsg);
+          setIsLoading(message.loader);
         } else if (message.action == 'ready') {
           setStatusMsg(message.statusMsg);
+          setIsLoading(message.loader);
+        } else if (message.action == 'progress') {
+          setStatusMsg(message.statusMsg);
+          setIsLoading(message.loader);
         } else if (message.action == 'done') {
           setStatusMsg(message.statusMsg);
+          setIsLoading(message.loader);
         }
       });
     }
@@ -108,41 +123,59 @@ export default function Home() {
         <div className={styles.main}>
           <div className="form">
             <div className="form-group">
-              <div className="mt-3">QR Code</div>
+              <div className="mt-3 mb-1 font-semibold">QR Code</div>
               <div className="pa-2">
-                <canvas className="border border-gray-500" id="canvas" width="400" height="400"></canvas>
+                <canvas className="border border-dashed border-gray-500" id="canvas" width="200" height="200"></canvas>
               </div>
             </div>
             
             <div className="form-group">
-              <div className="mt-3">Upload File</div>
-              <div className="border border-dashed border-gray-500 relative rounded-md">
+              <div className="mt-3 mb-1 font-semibold">Upload File</div>
+              <div className="mt-3 mb-1">
+                <button className="bg-green-500 hover:bg-green-600 border border-green-500 text-white py-1 px-1 rounded-md">
+                  Download format file
+                </button>
+              </div>
+              <div className="border border-dashed border-gray-500 relative rounded-md bg-gray-100">
                 <input type="file" ref={file} onChange={handleFile} className="cursor-pointer relative block opacity-0 w-full h-full p-20 z-50" />
                 <div className="text-center p-10 absolute top-0 right-0 left-0 m-auto">
                   <h4>
-                    Drop a file anywhere to upload
+                    Drop xlsx or csv file anywhere to upload
                     <br/>or
                   </h4>
-                  <p className="">Select a File</p>
+                  <p className="">Select a file</p>
                 </div>
               </div>
               { fileName ? 
-                <div className="mt-1">Selected file { fileName }</div> :
+                <div className="mt-1">Selected file <span className="text-blue-500">{ fileName }</span></div> :
                 <div></div>
               }
             </div>
             
             <div className="form-group">
-              <div className="mt-3">Message</div>
+              <div className="mt-3 font-semibold">Message</div>
+              <div className="mb-1">Tip: <span className="text-blue-500">#name</span> for name customization</div>
               <div className="border border-gray-500 relative rounded-md pa-2">
                 <textarea className="w-full h-full" rows="5" value={message} onChange={handleMessage}></textarea>
               </div>
             </div>
             
-            <div className="form-group">
-              <button onClick={executeMessage} className="mt-3 bg-gray-200 hover:bg-gray-300 border border-gray-500 text-black font-bold py-2 px-6 rounded-md">
-                Execute
-              </button>
+            <div className="form-group"> 
+              {
+                isLoading ?
+                <div className=" mt-3 flex">
+                  <button disabled onClick={executeMessage} className="bg-gray-500 border border-gray-500 text-white font-bold py-1 px-6 rounded-md">
+                    Execute
+                  </button>
+                  <div className={styles.loader}></div>
+                </div> 
+                :
+                <div className=" mt-3 flex">
+                  <button  onClick={executeMessage} className="bg-blue-800 hover:bg-blue-700 border border-blue-800 text-white font-bold py-1 px-6 rounded-md">
+                    Execute
+                  </button>
+                </div>
+              }
               { statusMsg ? 
                 <p>Status : { statusMsg }</p> :
                 <p></p>

@@ -14,7 +14,6 @@ io.on('connection', (socket) => {
   socket.emit('message', 'Hello from socket.io');
 
   socket.on('message', (data) => {
-    console.log(data);
     const client        = new Client({
         puppeteer: { args: ['--no-sandbox'] }
     });
@@ -22,7 +21,7 @@ io.on('connection', (socket) => {
         console.log('> QR RECEIVED', qr);
         socket.emit('message', {
             action: 'qr',
-            status: false,
+            loader: true,
             statusMsg: 'QR Code generated',
             data: qr
         });
@@ -31,15 +30,79 @@ io.on('connection', (socket) => {
         console.log('> Client is ready!');
         socket.emit('message', {
             action: 'ready',
-            status: false,
+            loader: true,
             statusMsg: 'Client ready',
             data: data
         });
+
+        if (data.message && data.rows.length) {
+          Promise.all(data.rows.map((item, index) => {
+            return new Promise((resolve) => {
+              const number  = item['Nomor HP'] ? item['Nomor HP'].replace('08', '628') : null;
+              const message = data.message.replace('#name', item['Nama Panggilan']);
+              setTimeout(() => {
+                socket.emit('message', {
+                  action: 'progress',
+                  loader: true,
+                  statusMsg: `Progress ${index+1} dari ${data.rows.length}`,
+                  data: item
+                });
+                if (number && number.startsWith('62')) {
+                  client.sendMessage(`${number}@c.us`, message)
+                  .then(() => {
+                      resolve({
+                          ... item,
+                          status: true
+                      });
+                  })
+                  .catch((error) => {
+                      resolve({
+                          ... item,
+                          status: false,
+                          message: error
+                      });
+                  });
+                } else {
+                  resolve({
+                      ... item,
+                      status: false,
+                      message: 'no number'
+                  });
+                }
+              }, index*3000);
+            });
+          }))
+          .then((result) => {
+            socket.emit('message', {
+              action: 'done',
+              loader: false,
+              statusMsg: 'Message sent',
+              data: result
+            });
+          })
+          .catch((error) => {
+            console.log(`> Error: `, error);
+            socket.emit('message', {
+              action: 'done',
+              status: true,
+              statusMsg: `Error ${error}`,
+              data: data
+            });
+          });
+        } else {
+          socket.emit('message', {
+            action: 'done',
+            status: true,
+            statusMsg: 'Invalid message and rows',
+            data: data
+          });
+        }
     });
     client.initialize().catch((error) => {
-        console.log('> ', error);
+        console.log('> Error: ', error);
     });
   });
+
 });
 
 nextApp.prepare().then(() => {
