@@ -9,6 +9,9 @@ export default function Home() {
   const [socket, setSocket]       = useState(io());
   const [message, setMessage]     = useState("");
   const [file, setFile]           = useState(React.createRef());
+  const [image, setImage]         = useState(React.createRef());
+  const [dataImage, setDataImage] = useState(null);
+  const [imageExt, setImageExt] = useState(null);
   const [fileName, setFileName]   = useState(null);
   const [dataExcel, setDataExcel] = useState([]);
   const [statusMsg, setStatusMsg] = useState(null);
@@ -22,7 +25,9 @@ export default function Home() {
         setStatusMsg("Loading...");
         const data = {
           message,
-          rows: dataExcel
+          rows: dataExcel,
+          image_ext: imageExt,
+          image_data: dataImage
         }
         socket.emit("message", data);
       }
@@ -43,8 +48,33 @@ export default function Home() {
     }
   }
 
+  function handleImage(e) {
+    e.preventDefault();
+    const name  = image.current.files[0].name;
+    const ext   = name.split(".")[1]
+    const ext_list = ['png', 'jpg', 'jpeg', 'JPG'];
+    if ( ext_list.includes(ext) ) {
+      setImageExt(ext);
+      readImage(image.current.files[0]);
+    } else {
+      alert('File format is not valid')
+    }
+  }
+
   function handleMessage(e) {
     setMessage(e.target.value);
+  }
+
+  function readImage(fileImage) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const base64 =  e.target.result.replace(/.*base64,/, '');
+      setDataImage(base64);
+    };
+    reader.onerror = function(ex) {
+      console.log(ex);
+    };
+    reader.readAsDataURL(fileImage);
   }
 
   function convertExcel(fileExcel) {
@@ -58,7 +88,6 @@ export default function Home() {
       const content = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
       setDataExcel(content);
     };
-
     reader.onerror = function(ex) {
       console.log(ex);
     };
@@ -157,6 +186,13 @@ export default function Home() {
               <div className="mb-1">Tip: <span className="text-blue-500">#name</span> for name customization</div>
               <div className="border border-gray-500 relative rounded-md pa-2">
                 <textarea className="w-full h-full" rows="5" value={message} onChange={handleMessage}></textarea>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <div className="mt-3 font-semibold">Add an Image</div>
+              <div>
+                <input type="file" ref={image} onChange={handleImage}></input>
               </div>
             </div>
             

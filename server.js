@@ -3,7 +3,7 @@ const server  = require('http').createServer(app);
 const io      = require('socket.io')(server);
 const next    = require('next');
 
-const { Client }  = require('whatsapp-web.js');
+const { Client, MessageMedia }  = require('whatsapp-web.js');
 const dev         = process.env.NODE_ENV !== 'production';
 const nextApp     = next({ dev })
 const nextHandler = nextApp.getRequestHandler()
@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
             return new Promise((resolve) => {
               const number  = item['Nomor HP'] ? item['Nomor HP'].replace('08', '628') : null;
               const message = data.message.replace('#name', item['Nama Panggilan']);
-              setTimeout(() => {
+              setTimeout(async () => {
                 socket.emit('message', {
                   action: 'progress',
                   loader: true,
@@ -48,6 +48,12 @@ io.on('connection', (socket) => {
                   data: item
                 });
                 if (number && number.startsWith('62')) {
+                  if (data.image_data && data.image_ext) {
+                    const media     = new MessageMedia(`image/${data.image_ext}`, data.image_data);
+                    await client.sendMessage(`${number}@c.us`, media).catch((error) => {
+                      console.log(error);
+                    });
+                  }
                   client.sendMessage(`${number}@c.us`, message)
                   .then(() => {
                       resolve({
