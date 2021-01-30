@@ -38,7 +38,7 @@ io.on('connection', (socket) => {
         if (data.message && data.rows.length) {
           Promise.all(data.rows.map((item, index) => {
             return new Promise((resolve) => {
-              const number  = item['Nomor HP'] ? item['Nomor HP'].replace('08', '628') : null;
+              const number  = item['Nomor HP'] ? String(item['Nomor HP']).replace('8', '628') : null;
               const message = data.message.replace('#name', item['Nama Panggilan']);
               setTimeout(async () => {
                 socket.emit('message', {
@@ -47,27 +47,37 @@ io.on('connection', (socket) => {
                   statusMsg: `Progress ${index+1} dari ${data.rows.length}`,
                   data: item
                 });
-                if (number && number.startsWith('62')) {
-                  if (data.image_data && data.image_ext) {
-                    const media     = new MessageMedia(`image/${data.image_ext}`, data.image_data);
-                    await client.sendMessage(`${number}@c.us`, media).catch((error) => {
-                      console.log(error);
-                    });
-                  }
-                  client.sendMessage(`${number}@c.us`, message)
-                  .then(() => {
-                      resolve({
-                          ... item,
-                          status: true
-                      });
-                  })
-                  .catch((error) => {
-                      resolve({
-                          ... item,
-                          status: false,
-                          message: error
-                      });
-                  });
+                console.log(number)
+                if (number) {
+                	if (String(number).startsWith('62')) {
+                		if (data.image_data && data.image_ext) {
+		                    const media     = new MessageMedia(`image/${data.image_ext}`, data.image_data);
+		                    await client.sendMessage(`${number}@c.us`, media).catch((error) => {
+		                      console.log(error);
+		                    });
+	                  	}
+						client.sendMessage(`${number}@c.us`, message)
+						.then(() => {
+						  resolve({
+						      ... item,
+						      status: true
+						  });
+						})
+						.catch((error) => {
+						  resolve({
+						      ... item,
+						      status: false,
+						      message: error
+						  });
+						});
+                	} else {
+                		resolve({
+					      ... item,
+					      status: false,
+					      message: 'error number'
+					  	});
+                	}
+                  
                 } else {
                   resolve({
                       ... item,
