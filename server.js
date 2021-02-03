@@ -38,7 +38,8 @@ io.on('connection', (socket) => {
         if (data.message && data.rows.length) {
           Promise.all(data.rows.map((item, index) => {
             return new Promise((resolve) => {
-              const number  = item['Nomor HP'] ? String(item['Nomor HP']).replace('8', '628') : null;
+              const numFilter = String(item['Nomor HP']).match(/8[0-9]+$/g);
+              const number  = numFilter ? `62${numFilter}` : null;
               const message = data.message.replace('#name', item['Nama Panggilan']);
               setTimeout(async () => {
                 socket.emit('message', {
