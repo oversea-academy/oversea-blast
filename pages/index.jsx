@@ -38,26 +38,33 @@ export default function Home() {
 
   function handleFile(e) {
     e.preventDefault();
-    const name = file.current.files[0].name;
-    const ext = name.split(".")[1]
-    if ( ext == 'xlsx' || ext == 'csv' ) {
-      setFileName(file.current.files[0].name);
-      convertExcel(file.current.files[0]);
-    } else {
-      alert('File format is not valid')
+    const name  = file.current.files[0] ? file.current.files[0].name : null;
+    if (name) {
+      const ext   = name.match(/((xlsx)|(csv))$/g);
+      if (ext) {
+        setFileName(file.current.files[0].name);
+        convertExcel(file.current.files[0]);
+      } else {
+        setFileName(null);
+        setDataExcel([]);
+        alert('File format is not valid')
+      }
     }
   }
 
   function handleImage(e) {
     e.preventDefault();
-    const name  = image.current.files[0].name;
-    const ext   = name.split(".")[1]
-    const ext_list = ['png', 'jpg', 'jpeg', 'JPG'];
-    if ( ext_list.includes(ext) ) {
-      setImageExt(ext);
-      readImage(image.current.files[0]);
-    } else {
-      alert('File format is not valid')
+    const name  = image.current.files[0] ? image.current.files[0].name : null;
+    if (name) {
+      const ext   = name.toLowerCase().match(/((jpeg)|(jpg)|(png))$/g);
+      if (ext) {
+        setImageExt(ext[0]);
+        readImage(image.current.files[0]);
+      } else {
+        setImageExt(null);
+        setDataImage(null);
+        alert('File format is not valid')
+      }
     }
   }
 
