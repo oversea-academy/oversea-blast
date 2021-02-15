@@ -1,13 +1,16 @@
-const app     = require('express')();
-const server  = require('http').createServer(app);
-const io      = require('socket.io')(server);
-const next    = require('next');
+const app         = require('express')();
+const bodyParser  = require('body-parser');
+const server      = require('http').createServer(app);
+const io          = require('socket.io')(server);
+const next        = require('next');
 
 const { Client, MessageMedia }  = require('whatsapp-web.js');
 const dev         = process.env.NODE_ENV !== 'production';
-const nextApp     = next({ dev })
-const nextHandler = nextApp.getRequestHandler()
+const nextApp     = next({ dev });
+const nextHandler = nextApp.getRequestHandler();
 const PORT        = process.env.PORT || 3000;
+
+app.use(bodyParser.urlencoded({ extended: true }));
 
 io.on('connection', (socket) => {
   console.log('> Connected succesfully to the socket ...');
@@ -125,6 +128,10 @@ io.on('connection', (socket) => {
 nextApp.prepare().then(() => {
   app.get('*', (req, res) => {
     return nextHandler(req, res);
+  });
+
+  app.post('/login', (req, res) => {
+    res.json(req.body);
   });
 
   server.listen(PORT, (err) => {
