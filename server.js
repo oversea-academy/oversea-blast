@@ -4,12 +4,16 @@ const server      = require('http').createServer(app);
 const io          = require('socket.io')(server);
 const next        = require('next');
 
+const controller  = require('./controllers');
+const loader      = require('./loaders');
+
 const { Client, MessageMedia }  = require('whatsapp-web.js');
 const dev         = process.env.NODE_ENV !== 'production';
 const nextApp     = next({ dev });
 const nextHandler = nextApp.getRequestHandler();
 const PORT        = process.env.PORT || 3000;
 
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 io.on('connection', (socket) => {
@@ -125,13 +129,19 @@ io.on('connection', (socket) => {
 
 });
 
-nextApp.prepare().then(() => {
+nextApp.prepare().then(async () => {
+  await loader();
+
   app.get('*', (req, res) => {
     return nextHandler(req, res);
   });
 
   app.post('/login', (req, res) => {
-    res.json(req.body);
+    controller.user.login(req, res);
+  });
+
+  app.post('/register', (req, res) => {
+    controller.user.register(req, res);
   });
 
   server.listen(PORT, (err) => {
