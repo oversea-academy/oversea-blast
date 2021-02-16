@@ -1,9 +1,12 @@
 import Head   from 'next/head';
-import styles from '../styles/Home.module.css';
 import io     from 'socket.io-client';
-import React, { useState, useEffect } from 'react';
+import React, { 
+  useState, 
+  useEffect
+} from 'react';
 import xlsx   from 'xlsx';
 import QRCode from 'qrcode';
+import Cookies from 'universal-cookie';
 
 export default function Home() {
   const [socket, setSocket]       = useState(io());
@@ -11,11 +14,12 @@ export default function Home() {
   const [file, setFile]           = useState(React.createRef());
   const [image, setImage]         = useState(React.createRef());
   const [dataImage, setDataImage] = useState(null);
-  const [imageExt, setImageExt] = useState(null);
+  const [imageExt, setImageExt]   = useState(null);
   const [fileName, setFileName]   = useState(null);
   const [dataExcel, setDataExcel] = useState([]);
   const [statusMsg, setStatusMsg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLogged, setIsLogged]   = useState(false);
 
   function executeMessage(e) {
     e.preventDefault();
@@ -138,107 +142,153 @@ export default function Home() {
         }
       });
     }
-  }, [])
+  }, []);
+
+  useEffect(() => {
+    const cookies = new Cookies();
+    const token = cookies.get('token');
+    
+    console.log(token);
+    
+    if (!token) {
+      window.location = window.origin + '/login'; 
+    }
+  }, []);
 
   return (
-    <div className={styles.container}>
+    <div>
       <Head>
-        <title>Blast Whatsapp</title>
+        <title>Oversea Blast</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Blast Whatsapp
-        </h1>
-
-        <p className={styles.description}>
-          Whatsapp blast application
-        </p>
-
-        <div className={styles.main}>
-          <div className="form">
-            <div className="form-group">
-              <div className="mt-3 mb-1 font-semibold">QR Code</div>
-              <div className="pa-2">
-                <canvas className="border border-dashed border-gray-500" id="canvas" width="200" height="200"></canvas>
-              </div>
-            </div>
-            
-            <div className="form-group">
-              <div className="mt-3 mb-1 font-semibold">Upload File</div>
-              <div className="mt-3 mb-2">
-                <a href="/format_blast.xlsx" download className="bg-green-500 hover:bg-green-600 border border-green-500 text-white py-1 px-1 rounded-md">
-                  Download format file
-                </a>
-              </div>
-              <div className="border border-dashed border-gray-500 relative rounded-md bg-gray-100">
-                <input type="file" ref={file} onChange={handleFile} className="cursor-pointer relative block opacity-0 w-full h-full p-20 z-50" />
-                <div className="text-center p-10 absolute top-0 right-0 left-0 m-auto">
-                  <h4>
-                    Drop xlsx or csv file anywhere to upload
-                    <br/>or
-                  </h4>
-                  <p className="">Select a file</p>
+      {
+        !isLogged ?
+        <main>
+          <nav className="bg-gray-800">
+            <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+              <div className="relative flex items-center justify-between h-16">
+                <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
+                  <button className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white" aria-expanded="false">
+                    <span className="sr-only">Open main menu</span>
+                    <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <svg className="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
+                  <div className="flex-shrink-0 flex items-center">
+                    <img className="block lg:hidden h-8 w-auto" src="https://tailwindui.com/img/logos/workflow-mark-indigo-500.svg" alt="Workflow" />
+                    <img className="hidden lg:block h-8 w-auto" src="https://tailwindui.com/img/logos/workflow-logo-indigo-500-mark-white-text.svg" alt="Workflow" />
+                  </div>
+                  <div className="hidden sm:block sm:ml-6">
+                    <div className="flex space-x-4">
+                      <a href="#" className="bg-gray-900 text-white px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+                  <div className="ml-3 relative">
+                    <div className="flex space-x-4">
+                      <a href="#" className="text-white px-3 py-2 text-sm font-medium">Sign out</a>
+                    </div> 
+                  </div>
                 </div>
               </div>
-              { fileName ? 
-                <div className="mt-1">Selected file <span className="text-blue-500">{ fileName }</span></div> :
-                <div></div>
-              }
-            </div>
-            
-            <div className="form-group">
-              <div className="mt-3 font-semibold">Message</div>
-              <div className="mb-1">Tip: <span className="text-blue-500">#name</span> for name customization</div>
-              <div className="border border-gray-500 relative rounded-md pa-2">
-                <textarea className="w-full h-full" rows="5" value={message} onChange={handleMessage}></textarea>
-              </div>
             </div>
 
-            <div className="form-group">
-              <div className="mt-3 font-semibold">Add an Image</div>
+            <div className="hidden sm:hidden">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                <a href="#" className="bg-gray-900 text-white block px-3 py-2 rounded-md text-base font-medium">Home</a>
+              </div>
+            </div>
+          </nav>
+
+          <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8">
               <div>
-                <input type="file" ref={image} onChange={handleImage}></input>
-              </div>
-            </div>
-            
-            <div className="form-group"> 
-              {
-                isLoading ?
-                <div className=" mt-3 flex">
-                  <button disabled onClick={executeMessage} className="bg-gray-500 border border-gray-500 text-white font-bold py-1 px-6 rounded-md">
-                    Execute
-                  </button>
-                  <div className={styles.loader}></div>
-                </div> 
-                :
-                <div className=" mt-3 flex">
-                  <button  onClick={executeMessage} className="bg-blue-800 hover:bg-blue-700 border border-blue-800 text-white font-bold py-1 px-6 rounded-md">
-                    Execute
-                  </button>
+                <div className="form">
+                  <div className="form-group">
+                    <div className="mt-3 mb-1 font-semibold">QR Code</div>
+                    <div className="pa-2">
+                      <canvas className="border border-dashed border-gray-500" id="canvas" width="200" height="200"></canvas>
+                    </div>
+                  </div>
+                  
+                  <div className="form-group">
+                    <div className="mt-3 mb-1 font-semibold">Upload File</div>
+                    <div className="mt-3 mb-2">
+                      <a href="/format_blast.xlsx" download className="bg-green-500 hover:bg-green-600 border border-green-500 text-white py-1 px-1 rounded-md">
+                        Download format file
+                      </a>
+                    </div>
+                    <div className="border border-dashed border-gray-500 relative rounded-md bg-gray-100">
+                      <input type="file" ref={file} onChange={handleFile} className="cursor-pointer relative block opacity-0 w-full h-full p-20 z-50" />
+                      <div className="text-center p-10 absolute top-0 right-0 left-0 m-auto">
+                        <h4>
+                          Drop xlsx or csv file anywhere to upload
+                          <br/>or
+                        </h4>
+                        <p className="">Select a file</p>
+                      </div>
+                    </div>
+                    { fileName ? 
+                      <div className="mt-1">Selected file <span className="text-blue-500">{ fileName }</span></div> :
+                      <div></div>
+                    }
+                  </div>
+                  
+                  <div className="form-group">
+                    <div className="mt-3 font-semibold">Message</div>
+                    <div className="mb-1">Tip: <span className="text-blue-500">#name</span> for name customization</div>
+                    <div className="border border-gray-500 relative rounded-md pa-2">
+                      <textarea className="w-full h-full" rows="5" value={message} onChange={handleMessage}></textarea>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <div className="mt-3 font-semibold">Add an Image</div>
+                    <div>
+                      <input type="file" ref={image} onChange={handleImage}></input>
+                    </div>
+                  </div>
+                  
+                  <div className="form-group"> 
+                    {
+                      isLoading ?
+                      <div className=" mt-3 flex">
+                        <button disabled onClick={executeMessage} className="bg-gray-500 border border-gray-500 text-white font-bold py-1 px-6 rounded-md">
+                          Execute
+                        </button>
+                        <div className={styles.loader}></div>
+                      </div> 
+                      :
+                      <div className=" mt-3 flex">
+                        <button  onClick={executeMessage} className="bg-blue-800 hover:bg-blue-700 border border-blue-800 text-white font-bold py-1 px-6 rounded-md">
+                          Execute
+                        </button>
+                      </div>
+                    }
+                    { statusMsg ? 
+                      <p>Status : { statusMsg }</p> :
+                      <p></p>
+                    }
+                  </div>
                 </div>
-              }
-              { statusMsg ? 
-                <p>Status : { statusMsg }</p> :
-                <p></p>
-              }
+              </div>
+
             </div>
-
           </div>
-        </div>
+        </main>
+        :
+        <main>
+          <h1>Loading</h1>
+        </main>
+      }
 
-      </main>
 
-      <footer className={styles.footer}>
-        <a
-          href="https://github.com/arifintahu"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Created by <span className="font-semibold"> @arifintahu</span>
-        </a>
-      </footer>
     </div>
   )
 }
