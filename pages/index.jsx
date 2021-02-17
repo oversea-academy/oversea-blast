@@ -122,6 +122,13 @@ export default function Home() {
     context.clearRect(0, 0, canvas.width, canvas.height);
   }
 
+  function signOut(e) {
+    e.preventDefault();
+    const cookies = new Cookies();
+    cookies.remove('token');
+    window.location.reload();
+  }
+
   useEffect(() => {
     if (socket) {
       socket.on("message", (message) => {
@@ -146,23 +153,23 @@ export default function Home() {
 
   useEffect(() => {
     const cookies = new Cookies();
-    const token = cookies.get('token');
-    
-    console.log(token);
-    
+    const token   = cookies.get('token');
+        
     if (!token) {
       window.location = window.origin + '/login'; 
+    } else {
+      setIsLogged(true);
     }
   }, []);
 
   return (
     <div>
       <Head>
-        <title>Oversea Blast</title>
+        <title>Overblast</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       {
-        !isLogged ?
+        isLogged ?
         <main>
           <nav className="bg-gray-800">
             <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
@@ -192,7 +199,7 @@ export default function Home() {
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
                   <div className="ml-3 relative">
                     <div className="flex space-x-4">
-                      <a href="#" className="text-white px-3 py-2 text-sm font-medium">Sign out</a>
+                      <a onClick={signOut} href="#" className="text-white px-3 py-2 text-sm font-medium">Sign out</a>
                     </div> 
                   </div>
                 </div>
@@ -206,85 +213,103 @@ export default function Home() {
             </div>
           </nav>
 
-          <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-              <div>
-                <div className="form">
-                  <div className="form-group">
-                    <div className="mt-3 mb-1 font-semibold">QR Code</div>
-                    <div className="pa-2">
-                      <canvas className="border border-dashed border-gray-500" id="canvas" width="200" height="200"></canvas>
-                    </div>
-                  </div>
-                  
-                  <div className="form-group">
-                    <div className="mt-3 mb-1 font-semibold">Upload File</div>
-                    <div className="mt-3 mb-2">
-                      <a href="/format_blast.xlsx" download className="bg-green-500 hover:bg-green-600 border border-green-500 text-white py-1 px-1 rounded-md">
-                        Download format file
-                      </a>
-                    </div>
-                    <div className="border border-dashed border-gray-500 relative rounded-md bg-gray-100">
-                      <input type="file" ref={file} onChange={handleFile} className="cursor-pointer relative block opacity-0 w-full h-full p-20 z-50" />
-                      <div className="text-center p-10 absolute top-0 right-0 left-0 m-auto">
-                        <h4>
-                          Drop xlsx or csv file anywhere to upload
-                          <br/>or
-                        </h4>
-                        <p className="">Select a file</p>
+          <div className="min-h-screen flex justify-center bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="part-left">
+                  <div className="form">
+                    <div className="form-group">
+                      <div className="mt-3 mb-1 font-semibold">QR Code</div>
+                      <div className="pa-2">
+                        <canvas className="border border-dashed border-gray-500 w-full rounded-md" id="canvas"></canvas>
                       </div>
                     </div>
-                    { fileName ? 
-                      <div className="mt-1">Selected file <span className="text-blue-500">{ fileName }</span></div> :
-                      <div></div>
-                    }
                   </div>
-                  
-                  <div className="form-group">
-                    <div className="mt-3 font-semibold">Message</div>
-                    <div className="mb-1">Tip: <span className="text-blue-500">#name</span> for name customization</div>
-                    <div className="border border-gray-500 relative rounded-md pa-2">
-                      <textarea className="w-full h-full" rows="5" value={message} onChange={handleMessage}></textarea>
+                </div>
+                <div className="part-right">
+                  <div className="form">
+                    <div className="form-group">
+                      <div className="mt-3 mb-1 flex justify-between">
+                        <div className="font-semibold">Upload File</div>
+                        <div>
+                          <a href="/format_blast.xlsx" download className="text-sm underline hover:text-indigo-500 text-indigo-600">
+                            Download format file
+                          </a>
+                        </div>
+                      </div>
+                      <div className="border border-dashed border-gray-500 relative rounded-md bg-gray-100">
+                        <input type="file" ref={file} onChange={handleFile} className="cursor-pointer relative block opacity-0 w-full h-full p-20 z-50" />
+                        <div className="text-sm text-center p-10 absolute top-0 right-0 left-0 m-auto">
+                          <div>
+                            Drop xlsx or csv file anywhere to upload
+                            <br/>or
+                          </div>
+                          <p>Select a file</p>
+                        </div>
+                      </div>
+                      { fileName ? 
+                        <div className="text-sm mt-1">Selected file <span className="text-indigo-500">{ fileName }</span></div> :
+                        <div></div>
+                      }
                     </div>
-                  </div>
+                    
+                    <div className="form-group">
+                      <div className="mt-3 mb-1 font-semibold">Message</div>
+                      <div className="mb-1 text-sm">Tip: <span className="text-indigo-500">#name</span> for name customization</div>
+                      <div className="box border rounded-md flex flex-col shadow bg-white">
+                        <textarea placeholder="Enter message here.." rows="5" className="text-grey-darkest flex-1 p-2 m-1 bg-transparent" value={message} onChange={handleMessage}></textarea>
+                      </div>
+                    </div>
 
-                  <div className="form-group">
-                    <div className="mt-3 font-semibold">Add an Image</div>
-                    <div>
-                      <input type="file" ref={image} onChange={handleImage}></input>
-                    </div>
-                  </div>
-                  
-                  <div className="form-group"> 
-                    {
-                      isLoading ?
-                      <div className=" mt-3 flex">
-                        <button disabled onClick={executeMessage} className="bg-gray-500 border border-gray-500 text-white font-bold py-1 px-6 rounded-md">
-                          Execute
-                        </button>
-                        <div className={styles.loader}></div>
-                      </div> 
-                      :
-                      <div className=" mt-3 flex">
-                        <button  onClick={executeMessage} className="bg-blue-800 hover:bg-blue-700 border border-blue-800 text-white font-bold py-1 px-6 rounded-md">
-                          Execute
-                        </button>
+                    <div className="form-group">
+                      <div className="mt-3 mb-1 font-semibold">Add an Image</div>
+                      <div>
+                        <input className="text-sm" type="file" ref={image} onChange={handleImage}></input>
                       </div>
-                    }
-                    { statusMsg ? 
-                      <p>Status : { statusMsg }</p> :
-                      <p></p>
-                    }
+                    </div>
+                    
+                    <div className="form-group"> 
+                      {
+                        isLoading ?
+                        <div className=" mt-3 flex">
+                          <button disabled onClick={executeMessage} className="bg-gray-500 border border-gray-500 text-white font-bold py-1 px-6 rounded-md">
+                            Execute
+                          </button>
+                          <div className={styles.loader}></div>
+                        </div> 
+                        :
+                        <div className=" mt-3 flex">
+                          <button  onClick={executeMessage} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                          <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <svg className="h-5 w-5 text-indigo-100 group-hover:text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" >
+                                <path fillRule="none" d="M17.218,2.268L2.477,8.388C2.13,8.535,2.164,9.05,2.542,9.134L9.33,10.67l1.535,6.787c0.083,0.377,0.602,0.415,0.745,0.065l6.123-14.74C17.866,2.46,17.539,2.134,17.218,2.268 M3.92,8.641l11.772-4.89L9.535,9.909L3.92,8.641z M11.358,16.078l-1.268-5.613l6.157-6.157L11.358,16.078z" />
+                            </svg>
+                          </span>
+                            Execute
+                          </button>
+                        </div>
+                      }
+                      { statusMsg ? 
+                        <p>Status : { statusMsg }</p> :
+                        <p></p>
+                      }
+                    </div>
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </main>
         :
         <main>
-          <h1>Loading</h1>
+        <div className="fixed top-0 left-0 right-0 bottom-0 w-full h-screen z-50 overflow-hidden bg-gray-700 opacity-75 flex flex-col items-center justify-center">
+          <svg className="animate-spin -ml-1 mr-3 h-10 w-10 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg> 
+          <h2 className="text-center text-white text-xl font-semibold">Loading...</h2>
+          <p className="w-1/3 text-center text-white">This may take a few seconds, please don't close this page.</p>
+        </div>
         </main>
       }
 
