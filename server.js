@@ -68,13 +68,20 @@ io.on('connection', (socket) => {
 
                 		if (data.image_data && data.image_ext) {
                       const media     = new MessageMedia(`image/${data.image_ext}`, data.image_data);
-                      await client.sendMessage(`${number}@c.us`, media).catch((error) => {
+                      await client.sendMessage(`${number}@c.us`, media, {
+                        media: true
+                      })
+                      .then((res) => {
+                        console.log(res);
+                      })
+                      .catch((error) => {
                         console.log(error);
                       });
 	                  }
 
                     client.sendMessage(`${number}@c.us`, message)
-                    .then(() => {
+                    .then((res) => {
+                      console.log(res);
                       resolve({
                           ... item,
                           status: true
