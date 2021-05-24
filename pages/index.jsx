@@ -11,6 +11,7 @@ import Cookies from 'universal-cookie';
 export default function Home() {
   const [socket, setSocket]       = useState(io());
   const [message, setMessage]     = useState("");
+  const [mode, setMode]           = useState("default");
   const [file, setFile]           = useState(React.createRef());
   const [image, setImage]         = useState(React.createRef());
   const [dataImage, setDataImage] = useState(null);
@@ -29,6 +30,7 @@ export default function Home() {
         setStatusMsg("Loading...");
         const data = {
           message,
+          mode: mode,
           rows: dataExcel,
           image_ext: imageExt,
           image_data: dataImage
@@ -129,10 +131,13 @@ export default function Home() {
     window.location.reload();
   }
 
+  function selectMode(e) {
+    setMode(e.target.value);
+  }
+
   useEffect(() => {
     if (socket) {
       socket.on("message", (message) => {
-        console.log(message);
         if (message.action == 'qr') {
           renderQRCode(message.data);
           setStatusMsg(message.statusMsg);
@@ -262,7 +267,7 @@ export default function Home() {
                     
                     <div className="form-group">
                       <div className="mt-3 mb-1 font-semibold">Message</div>
-                      <div className="mb-1 text-sm">Tip: <span className="text-indigo-500">#name</span> for name customization</div>
+                      <div className="mb-1 text-sm">Tip: <span className="text-indigo-500">#name</span> for name customization, <span className="text-indigo-500">#structure #reading #listening #total </span>for TOEFL mode</div>
                       <div className="box border rounded-md flex flex-col shadow bg-white">
                         <textarea placeholder="Enter message here.." rows="5" className="text-grey-darkest flex-1 p-2 m-1 bg-transparent" value={message} onChange={handleMessage}></textarea>
                       </div>
@@ -272,6 +277,19 @@ export default function Home() {
                       <div className="mt-3 mb-1 font-semibold">Add an Image</div>
                       <div>
                         <input className="text-sm" type="file" ref={image} onChange={handleImage}></input>
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <div className="mt-3 mb-1 font-semibold">Mode</div>
+                      <div onChange={selectMode}>
+                        <label className="inline-flex items-center">
+                          <input type="radio" className="form-radio" name="mode" value="default" defaultChecked/>
+                          <span className="ml-2">Default</span>
+                        </label>
+                        <label className="inline-flex items-center ml-6">
+                          <input type="radio" className="form-radio" name="mode" value="toefl"/>
+                          <span className="ml-2">TOEFL Score</span>
+                        </label>
                       </div>
                     </div>
                     
