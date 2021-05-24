@@ -6,6 +6,7 @@ const next        = require('next');
 
 const controller  = require('./controllers');
 const loader      = require('./loaders');
+const helper      = require('./helpers');
 
 const { Client, MessageMedia }  = require('whatsapp-web.js');
 const dev         = process.env.NODE_ENV !== 'production';
@@ -31,7 +32,7 @@ io.on('connection', (socket) => {
         socket.emit('message', {
             action: 'qr',
             loader: true,
-            statusMsg: 'QR Code generated',
+            statusMsg: 'QR Code generated, please scan',
             data: qr
         });
     });
@@ -47,10 +48,10 @@ io.on('connection', (socket) => {
 
         if (data.message && data.rows.length) {
           Promise.all(data.rows.map((item, index) => {
-            return new Promise((resolve) => {
+            return new Promise(async (resolve) => {
               const numFilter = String(item['Nomor HP']).match(/8[0-9]+$/g);
-              const number  = numFilter ? `62${numFilter}` : null;
-              const message = data.message.replace('#name', item['Nama Panggilan']);
+              const number    = numFilter ? `62${numFilter}` : null;
+              const message   = await helper.replaceMessage(data.message, item, data.mode);
 
               setTimeout(async () => {
                 socket.emit('message', {
@@ -60,12 +61,8 @@ io.on('connection', (socket) => {
                   data: item
                 });
 
-                console.log(number);
-
                 if (number) {
-
                 	if (String(number).startsWith('62')) {
-
                 		if (data.image_data && data.image_ext) {
                       const media     = new MessageMedia(`image/${data.image_ext}`, data.image_data);
                       await client.sendMessage(`${number}@c.us`, media, {
@@ -80,8 +77,7 @@ io.on('connection', (socket) => {
 	                  }
 
                     client.sendMessage(`${number}@c.us`, message)
-                    .then((res) => {
-                      console.log(res);
+                    .then(() => {
                       resolve({
                           ... item,
                           status: true
