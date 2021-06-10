@@ -1,5 +1,4 @@
 const bcrypt    = require('bcrypt');
-const model     = require('../models');
 const { auth }  = require('../middlewares');
 
 const service = {

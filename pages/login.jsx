@@ -6,6 +6,8 @@ export default function Login() {
     const [dataEmail, setDataEmail]         = useState('');
     const [dataPassword, setDataPassword]   = useState('');
     const [isSignIn, setIsSignIn]           = useState(false);
+    const [failedSignIn, setFailedSignIn]   = useState(false);
+    const [messageFailed, setMessageFailed] = useState('');
 
     function handleEmail(e) {
         if (e.target.value) {
@@ -27,7 +29,8 @@ export default function Login() {
         e.preventDefault();
         if (dataEmail && dataPassword) {
             setIsSignIn(true);
-            fetch('/login', {
+            setFailedSignIn(false);
+            fetch('/api/user/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -39,6 +42,7 @@ export default function Login() {
             })
             .then(response => response.json())
             .then(data => {
+                setIsSignIn(false);
                 if (data.status) {
                     const token = data.data.token;
                     const cookies = new Cookies();
@@ -51,12 +55,14 @@ export default function Login() {
                     });
                     window.location = window.origin;
                 } else {
-                    setIsSignIn(true);
+                    setFailedSignIn(true);
+                    setMessageFailed(data.msg);
                 }
             })
             .catch((error) => {
                 setIsSignIn(false);
-                console.error('Error:', error);
+                setFailedSignIn(true);
+                setMessageFailed(error);
             });
         }
     }
@@ -121,6 +127,17 @@ export default function Login() {
                                     </span>
                                     Sign in
                                 </button>
+                            </div>
+                            <div className="alert">
+                                {
+                                    failedSignIn ? 
+                                        <div className="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4" role="alert">
+                                            <p className="font-bold">Sign In Failed</p>
+                                            <p>{ messageFailed }</p>
+                                        </div>
+                                    :
+                                    <div></div>
+                                }
                             </div>
                         </form>
                     </div>

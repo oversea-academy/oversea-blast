@@ -1,21 +1,20 @@
-const app         = require('express')();
-const bodyParser  = require('body-parser');
+const express     = require('express');
+const app         = express();
 const server      = require('http').createServer(app);
 const io          = require('socket.io')(server);
 const next        = require('next');
-
-const controller  = require('./controllers');
-const loader      = require('./loaders');
-const helper      = require('./helpers');
-
 const { Client, MessageMedia }  = require('whatsapp-web.js');
+
 const dev         = process.env.NODE_ENV !== 'production';
 const nextApp     = next({ dev });
 const nextHandler = nextApp.getRequestHandler();
-const PORT        = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+const PORT        = process.env.PORT || 3000;
+const API         = process.env.API  || 'api';
+
+const router      = require('./routers');
+const loader      = require('./loaders');
+const helper      = require('./helpers');
 
 io.on('connection', (socket) => {
   console.log('> Connected succesfully to the socket ...');
@@ -147,16 +146,13 @@ io.on('connection', (socket) => {
 nextApp.prepare().then(async () => {
   await loader();
 
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
+
+  app.use(`/${API}`, router);
+
   app.get('*', (req, res) => {
     return nextHandler(req, res);
-  });
-
-  app.post('/login', (req, res) => {
-    controller.user.login(req, res);
-  });
-
-  app.post('/register', (req, res) => {
-    controller.user.register(req, res);
   });
 
   server.listen(PORT, (err) => {
