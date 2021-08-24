@@ -21,24 +21,42 @@ export default function Home() {
   const [statusMsg, setStatusMsg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLogged, setIsLogged]   = useState(false);
+  const [startRow, setStartRow]   = useState(0);
+  const [endRow, setEndRow]       = useState(0);
 
   function executeMessage(e) {
     e.preventDefault();
     if (message && dataExcel.length) {
-      if (confirm('Are you sure?')) {
-        setIsLoading(true);
-        setStatusMsg("Loading...");
-        const data = {
-          message,
-          mode: mode,
-          rows: dataExcel,
-          image_ext: imageExt,
-          image_data: dataImage
+      if (checkStartEndRow()) {
+        if (confirm('Are you sure?')) {
+          setIsLoading(true);
+          setStatusMsg("Loading...");
+          const data = {
+            message,
+            mode: mode,
+            rows: dataExcel.slice(startRow-1, endRow),
+            image_ext: imageExt,
+            image_data: dataImage
+          }
+          socket.emit("message", data);
         }
-        socket.emit("message", data);
       }
     } else {
       alert('Message and file is empty');
+    }
+  }
+
+  function checkStartEndRow() {
+    if (startRow >= 1 && endRow >= 1) {
+      if (startRow <= endRow) {
+        return true;
+      } else {
+        alert('Start range must be smaller or equal than end range');
+        return false;
+      }
+    } else {
+      alert('Minimum number 1');
+      return false;
     }
   }
 
@@ -78,6 +96,30 @@ export default function Home() {
     setMessage(e.target.value);
   }
 
+  function handleStartRow(e) {
+    if (e.target.value > dataExcel.length) {
+      alert(`Max number allowed ${dataExcel.length}`);
+      setStartRow(dataExcel.length);
+    } else if (e.target.value < 0) {
+      alert('Min number 1');
+      setStartRow(0);
+    } else {
+      setStartRow(e.target.value);
+    }
+  }
+
+  function handleEndRow(e) {
+    if (e.target.value > dataExcel.length) {
+      alert(`Max number allowed ${dataExcel.length}`);
+      setEndRow(dataExcel.length);
+    } else if (e.target.value < 0) {
+      alert('Min number 1');
+      setEndRow(0);
+    } else {
+      setEndRow(e.target.value);
+    }
+  }
+
   function readImage(fileImage) {
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -100,6 +142,10 @@ export default function Home() {
       const sheet_name_list = workbook.SheetNames;
       const content = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
       setDataExcel(content);
+      if (content.length) {
+        setStartRow(1);
+        setEndRow(content.length);
+      }
     };
     reader.onerror = function(ex) {
       console.log(ex);
@@ -263,6 +309,26 @@ export default function Home() {
                         <div className="text-sm mt-1">Selected file <span className="text-indigo-500">{ fileName }</span></div> :
                         <div></div>
                       }
+                    </div>
+
+                    <div className="form-group">
+                      <div className="mt-3 mb-1 font-semibold">Range Data</div>
+                      <div className="mb-1 text-sm">Max number: <span className="font-semibold text-yellow-600">{ dataExcel.length }</span></div>
+                      <div className="flex gap-2 items-center">
+                        <div>
+                          <div>Start</div>
+                          <div className="box border rounded-md shadow bg-white">
+                            <input className="p-1" type="number" placeholder="1" value={startRow} onChange={handleStartRow}></input>
+                          </div>
+                        </div>
+                        <div className="font-bold text-3xl mx-2">-</div>
+                        <div>
+                          <div>End</div>
+                          <div className="box border rounded-md shadow bg-white">
+                            <input className="p-1" type="number" value={endRow} onChange={handleEndRow}></input>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     
                     <div className="form-group">
