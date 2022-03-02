@@ -1,0 +1,30 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 12
+    commands:
+      - npm install
+    finally:
+      - echo Install phase finished on `date`
+  pre_build:
+    commands:
+      - echo Nothing to do in pre_build phase
+  build:
+    on-failure: ABORT
+    commands:
+      - echo Build started on `date`
+      - npm run build
+  post_build:
+    commands:
+      - echo `ls`
+      - echo Build phase finished on `date`
+cache:
+  paths:
+    - 'node_modules/**/*'
+artifacts:
+  files:
+    - '**/*'
+  base-directory: ./
+  name: app-oversea-blast-build

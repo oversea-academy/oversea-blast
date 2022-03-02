@@ -1,18 +1,18 @@
-const express     = require('express');
-const app         = express();
-const server      = require('http').createServer(app);
-const next        = require('next');
+const express = require('express');
+const app = express();
+const server = require('http').createServer(app);
+const next = require('next');
 
-const dev         = process.env.NODE_ENV !== 'production';
-const nextApp     = next({ dev });
+const dev = process.env.NODE_ENV !== 'production';
+const nextApp = next({ dev });
 const nextHandler = nextApp.getRequestHandler();
 
-const PORT        = process.env.PORT || 3000;
-const API         = process.env.API  || 'api';
+const PORT = process.env.PORT || 3000;
+const API = process.env.API || 'api';
 
-const router      = require('./routers');
-const loader      = require('./loaders');
-const socket      = require('./socket');
+const router = require('./routers');
+const loader = require('./loaders');
+const socket = require('./socket');
 
 socket(server);
 
@@ -30,6 +30,6 @@ nextApp.prepare().then(async () => {
 
   server.listen(PORT, (err) => {
     if (err) throw err;
-    console.log(`> Ready on http://localhost:${PORT}`)
-  });  
-})
+    console.log(`> Ready on http://localhost:${PORT}`);
+  });
+});
