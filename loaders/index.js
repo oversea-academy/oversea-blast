@@ -1,5 +1,5 @@
-const sequelizeModule 	= require('./sequelize');
+const sequelizeModule = require('./sequelize');
 
 module.exports = async () => {
-    global.db = await sequelizeModule();
+  global.db = await sequelizeModule();
 };

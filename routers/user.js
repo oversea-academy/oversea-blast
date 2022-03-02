@@ -1,5 +1,4 @@
 module.exports = ({ route, controller }) => {
-
   route.post('/login', [], (req, res) => {
     controller.user.login(req, res);
   });

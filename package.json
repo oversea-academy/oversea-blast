@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "nodemon server.js",
     "build": "next build",
-    "start": "node --optimize_for_size --max_old_space_size=460 --gc_interval=100 server.js"
+    "start": "node --optimize_for_size --max_old_space_size=460 --gc_interval=100 server.js",
+    "format": "npx prettier --write ."
   },
   "dependencies": {
     "autoprefixer": "^10.4.2",
@@ -29,6 +30,7 @@
     "xlsx": "^0.16.9"
   },
   "devDependencies": {
-    "nodemon": "^2.0.12"
+    "nodemon": "^2.0.12",
+    "prettier": "^2.5.1"
   }
 }
