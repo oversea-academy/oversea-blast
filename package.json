@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "nodemon server.js",
     "build": "next build",
-    "start": "node --optimize_for_size --max_old_space_size=460 --gc_interval=100 server.js"
+    "start": "node --optimize_for_size --max_old_space_size=460 --gc_interval=100 server.js",
+    "format": "npx prettier --write ."
   },
   "dependencies": {
     "autoprefixer": "^10.4.2",
@@ -16,7 +17,6 @@
     "next": "10.0.5",
     "pg": "^8.7.3",
     "pg-hstore": "^2.3.4",
-    "pg-native": "^3.0.0",
     "postcss": "^8.4.7",
     "qrcode": "^1.4.4",
     "react": "17.0.1",
@@ -30,6 +30,7 @@
     "xlsx": "^0.16.9"
   },
   "devDependencies": {
-    "nodemon": "^2.0.12"
+    "nodemon": "^2.0.12",
+    "prettier": "^2.5.1"
   }
 }
