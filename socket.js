@@ -10,11 +10,12 @@ module.exports = (server) => {
         `> Message ${data.message} with rows ${data.rows.length} mode ${data.mode}`
       );
       const client = new Client({
-        puppeteer: { args: ['--no-sandbox'] }
+        puppeteer: { args: ['--no-sandbox'] },
+        qrMaxRetries: 7
       });
-
+      
       client.on('qr', (qr) => {
-        console.log('> QR RECEIVED', qr);
+        console.log(`> QR RECEIVED : ${qr}`);
         socket.emit('message', {
           action: 'qr',
           loader: true,
@@ -143,6 +144,15 @@ module.exports = (server) => {
 
       client.on('disconnected', (reason) => {
         console.log('> Client was logged out by', reason);
+
+        if (reason === 'Max qrcode retries reached') {
+          socket.emit('message', {
+            action: 'done',
+            status: true,
+            statusMsg: 'Max qrcode retries reached',
+            data: null
+          });
+        }
       });
 
       client.initialize().catch((error) => {
